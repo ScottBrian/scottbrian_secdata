@@ -45,28 +45,35 @@ def sec_data(tmp_path: Any) -> "SecData":
     ###########################################################################
     # create temp directories for testing
     ###########################################################################
-    sec_raw_data_dir = tmp_path / "sec_raw_data"
-    sec_raw_data_dir.mkdir()
+    zip_dir = tmp_path / "sec_zip_data"
+    zip_dir.mkdir()
+
+    raw_dir = tmp_path / "sec_raw_data"
+    raw_dir.mkdir()
 
     sec_df_data_dir = tmp_path / "sec_df_data"
     sec_df_data_dir.mkdir()
 
     ###########################################################################
-    # copy sec data to temp directories
+    # copy sec zip files to temp directories
     ###########################################################################
-    src_dir = Path('/home/Tiger/sec_data/')
+    src_dir = Path('/home/Tiger/Downloads')
+    for zip_file in ['2018q2.zip', '2020q1.zip']:
+        zip_path = src_dir / zip_file
+        shutil.copy2(zip_path, zip_dir)
 
-    for qtr_dir in ['2018q2', '2020q1']:
-        dst_dir = sec_raw_data_dir / qtr_dir
-        dst_dir.mkdir()
-        for file_name in ['sub.txt', 'num.txt']:
-            src = src_dir / qtr_dir / file_name
-            shutil.copy2(src, dst_dir)
+    # for qtr_dir in ['2018q2', '2020q1']:
+    #     dst_dir = raw_dir / qtr_dir
+    #     dst_dir.mkdir()
+    #     for file_name in ['sub.txt', 'num.txt']:
+    #         src = src_dir / qtr_dir / file_name
+    #         shutil.copy2(src, dst_dir)
 
-    # for dirpath, dirnames, files in os.walk(sec_raw_data_dir):
+    # for dirpath, dirnames, files in os.walk(raw_dir):
     #     print(f'{dirpath}:{dirnames}:{files}')
 
-    ds_catalog = FileCatalog({'sec_raw_data_dir': sec_raw_data_dir,
+    ds_catalog = FileCatalog({'zip_dir': zip_dir,
+                              'raw_dir': raw_dir,
                               'sec_df_data_dir': sec_df_data_dir
                               })
 

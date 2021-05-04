@@ -17,9 +17,12 @@ Use cases:
 7) get a specific quarterly ratio for all companies
 8) get a specific annual ratio for all companies
 
+known_as_of_date
+
 """
 
 import pandas as pd  # type: ignore
+from zipfile import ZipFile
 # import numpy as np
 # import matplotlib.pyplot as plt
 # import os
@@ -127,6 +130,34 @@ class SecData:
 
         return f'{classname}({parms})'
 
+    def extract_sec_ds(self, date: str) -> None:
+        """Extract sec zip data set for given date.
+
+        Args:
+            date: identifies the sec zip files to extract (e.g., '2020q1')
+
+        Raises:
+            DataSetNotFound: the zip data set was not found
+
+        """
+        #######################################################################
+        # if zip data set exists, extract it into the raw directory
+        #######################################################################
+        zip_path = (self.ds_catalog.get_path('zip_dir')
+                    / date).with_suffix('.zip')
+        raw_dir = self.ds_catalog.get_path('raw_dir')
+        logger.info(f'paths: {zip_path}, {raw_dir}')
+
+        dst_dir = raw_dir / date
+
+        if not zip_path.exists():
+            raise DataSetNotFound(f'{zip_path} not found')
+        else:
+            for file_name in ('sub.txt', 'num.txt'):
+                # src_path = zip_dir / date / file_name
+                with ZipFile(zip_path, 'r') as zf:
+                    zf.extract(file_name, path=dst_dir)
+
     def load_sec_raw_ds(self, date: str) -> None:
         """Load sec raw data sets for given date.
 
@@ -140,10 +171,10 @@ class SecData:
         #######################################################################
         # if raw data set exists, load it and reset the index
         #######################################################################
-        sec_raw_data_dir = self.ds_catalog.get_path('sec_raw_data_dir')
-        logger.info(f'path: {sec_raw_data_dir}')
+        raw_dir = self.ds_catalog.get_path('raw_dir')
+        logger.info(f'path: {raw_dir}')
 
-        sub_path = sec_raw_data_dir / date / 'sub.txt'
+        sub_path = raw_dir / date / 'sub.txt'
         if not sub_path.exists():
             raise DataSetNotFound(f'{sub_path} not found')
         else:
@@ -151,7 +182,7 @@ class SecData:
                                    sep='\t',
                                    dtype={'cik': str, 'name': 'string'})
 
-        num_path = sec_raw_data_dir / date / 'num.txt'
+        num_path = raw_dir / date / 'num.txt'
         if not num_path.exists():
             raise DataSetNotFound(f'{num_path} not found')
         else:
